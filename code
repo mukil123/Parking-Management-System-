@@ -1,0 +1,228 @@
+#include <iostream>
+#include <fstream>
+#include <set>
+#include <vector>
+using namespace std;
+
+bool isValidPhoneNumber(const string& phoneNumber, set<string>& usedPhoneNumbers) {
+    
+    return phoneNumber.length() == 10 && usedPhoneNumbers.count(phoneNumber) == 0;
+}
+
+void saveParkingDetailsToWord(const vector<int>& vehicleNumbers, const vector<string>& phoneNumbers, const vector<string>& vehicleNames, const vector<int>& slotNumbers) {
+    ofstream file("parking_details.doc");
+    if (file.is_open()) {
+        file << "PARKING MANAGEMENT SYSTEM\n";
+        file << "---------------------------------------\n";
+        file << "TOTAL NUMBER OF VEHICLES PARKED: " << vehicleNumbers.size() << "\n";
+        file << "---------------------------------------\n";
+        file << "VEHICLE DETAILS:\n";
+
+        for (size_t i = 0; i < vehicleNumbers.size(); ++i) {
+            file << "Slot Number: " << slotNumbers[i] << "\n";
+            file << "Vehicle Number: " << vehicleNumbers[i] << "\n";
+            file << "Vehicle Name: " << vehicleNames[i] << "\n";
+            file << "Phone Number: " << phoneNumbers[i] << "\n";
+            file << "---------------------------------------\n";
+        }
+
+        file.close();
+
+        cout << "Parking details saved to parking_details.doc" << endl;
+    }
+    else {
+        cout << "Error: Unable to save parking details to file." << endl;
+    }
+}
+
+int main()
+{
+    const int TOTAL_SLOTS = 75;
+    const int SLOTS_PER_TYPE = 25;
+    const int TWO_WHEELER_SLOT_START = 1;
+    const int THREE_WHEELER_SLOT_START = 26;
+    const int FOUR_WHEELER_SLOT_START = 51;
+    int amount = 0;
+    int count2Wheeler = 0;
+    int count3Wheeler = 0;
+    int count4Wheeler = 0;
+    vector<int> vehicleNumbers;
+    vector<string> phoneNumbers;
+    vector<string> vehicleNames;
+    vector<int> slotNumbers;
+    set<int> usedVehicleNumbers; // Set to store used vehicle numbers
+    set<string> usedPhoneNumbers; // Set to store used phone numbers
+    int highestSlotNumber = 0; // Track the highest slot number used
+
+    cout << "PARKING MANAGEMENT SYSTEM" << endl;
+    cout << "---------------------------------------" << endl;
+    cout << "TOTAL PARKING SLOTS = " << TOTAL_SLOTS << endl;
+    cout << "---------------------------------------" << endl;
+    cout << "TWO WHEELER CHARGE = 50" << endl;
+    cout << "THREE WHEELER CHARGE = 100" << endl;
+    cout << "FOUR WHEELER CHARGE = 150" << endl;
+    cout << "---------------------------------------" << endl;
+
+    while (true)
+    {
+        int ui;
+        cout << "CHOOSE THE OPTIONS......" << endl;
+        cout << "PRESS 1 FOR 2 WHEELERS" << endl;
+        cout << "PRESS 2 FOR 3 WHEELERS" << endl;
+        cout << "PRESS 3 FOR 4 WHEELERS" << endl;
+        cout << "PRESS 4 FOR SHOWING THE CURRENT STATUS" << endl;
+        cout << "PRESS 5 FOR DELETING A VEHICLE" << endl;
+        cout << "PRESS 6 TO EXIT" << endl;
+        cout << "---------------------------------------" << endl;
+
+        cin >> ui;
+
+        if (ui == 1 || ui == 2 || ui == 3)
+        {
+            int vehicleCharge = (ui == 1) ? 50 : ((ui == 2) ? 100 : 150);
+            int& vehicleCounter = (ui == 1) ? count2Wheeler : ((ui == 2) ? count3Wheeler : count4Wheeler);
+            int slotStart = (ui == 1) ? TWO_WHEELER_SLOT_START : ((ui == 2) ? THREE_WHEELER_SLOT_START : FOUR_WHEELER_SLOT_START);
+
+            if (vehicleCounter < SLOTS_PER_TYPE && (count2Wheeler + count3Wheeler + count4Wheeler) < TOTAL_SLOTS)
+            {
+                int vehicleNumber;
+                string phoneNumber;
+                string vehicleName;
+                cout << "---------------------------------------" << endl;
+                cout << "ENTER THE VEHICLE NUMBER." << endl;
+                cin >> vehicleNumber;
+
+                // Check if the vehicle number is unique and has up to 4 digits
+                while (usedVehicleNumbers.count(vehicleNumber) || vehicleNumber < 1000 || vehicleNumber > 9999)
+                {
+                    cout << "INVALID VEHICLE NUMBER. Please enter a unique 4-digit number." << endl;
+                    cin >> vehicleNumber;
+                }
+                usedVehicleNumbers.insert(vehicleNumber); // Add the vehicle number to the set
+
+                cout << "ENTER THE VEHICLE NAME." << endl;
+                cin.ignore(); // Ignore the newline character left in the input stream
+                getline(cin, vehicleName);
+
+                cout << "ENTER THE PHONE NUMBER." << endl;
+                cin >> phoneNumber;
+
+                // Check if the phone number is valid and unique
+                while (!isValidPhoneNumber(phoneNumber, usedPhoneNumbers))
+                {
+                    cout << "INVALID PHONE NUMBER. Please enter a unique 10-digit number." << endl;
+                    cin >> phoneNumber;
+                }
+                usedPhoneNumbers.insert(phoneNumber); // Add the phone number to the set
+
+                // Find the next available slot number
+                int newSlotNumber = slotStart + vehicleCounter;
+
+                vehicleNumbers.push_back(vehicleNumber);
+                vehicleNames.push_back(vehicleName);
+                phoneNumbers.push_back(phoneNumber);
+                slotNumbers.push_back(newSlotNumber);
+
+                amount += vehicleCharge;
+                vehicleCounter++;
+
+                cout << "A NEW VEHICLE HAS BEEN PARKED." << endl;
+                cout << "SLOT NUMBER: " << newSlotNumber << endl;
+                cout << "TOTAL NUMBER OF VEHICLES = " << count2Wheeler + count3Wheeler + count4Wheeler << endl;
+                cout << "NUMBER OF FREE SLOTS = " << TOTAL_SLOTS - (count2Wheeler + count3Wheeler + count4Wheeler) << endl;
+                cout << "---------------------------------------" << endl;
+            }
+            else
+            {
+                cout << "SORRY! NO FREE SLOTS AVAILABLE" << endl;
+            }
+        }
+        else if (ui == 4)
+        {
+            cout << "---------------------------------------" << endl;
+            cout << "TOTAL AMOUNT RECEIVED = " << amount << endl;
+            cout << "TOTAL NUMBER OF VEHICLES PARKED:" << endl;
+            cout << "2 WHEELERS: " << count2Wheeler << endl;
+            cout << "3 WHEELERS: " << count3Wheeler << endl;
+            cout << "4 WHEELERS: " << count4Wheeler << endl;
+            cout << "VEHICLE DETAILS:" << endl;
+
+            for (size_t i = 0; i < vehicleNumbers.size(); ++i)
+            {
+                cout << "Slot Number: " << slotNumbers[i] << endl;
+                cout << "Vehicle Number: " << vehicleNumbers[i] << endl;
+                cout << "Vehicle Name: " << vehicleNames[i] << endl;
+                cout << "Phone Number: " << phoneNumbers[i] << endl;
+                cout << "---------------------------------------" << endl;
+            }
+
+            cout << "---------------------------------------" << endl;
+        }
+        else if (ui == 5)
+        {
+            cout << "ENTER THE VEHICLE NUMBER TO REMOVE: ";
+            int vehicleNumber;
+            cin >> vehicleNumber;
+
+            bool found = false;
+            int removedIndex = -1;
+
+            for (size_t i = 0; i < vehicleNumbers.size(); ++i)
+            {
+                if (vehicleNumbers[i] == vehicleNumber)
+                {
+                    found = true;
+                    removedIndex = i;
+                    usedVehicleNumbers.erase(vehicleNumbers[i]);
+                    usedPhoneNumbers.erase(phoneNumbers[i]);
+                    break;
+                }
+            }
+
+
+            if (found)
+            {
+                vehicleNumbers.erase(vehicleNumbers.begin() + removedIndex);
+                vehicleNames.erase(vehicleNames.begin() + removedIndex);
+                phoneNumbers.erase(phoneNumbers.begin() + removedIndex);
+                slotNumbers.erase(slotNumbers.begin() + removedIndex);
+
+                if (removedIndex < count2Wheeler)
+                    count2Wheeler--;
+                else if (removedIndex < count2Wheeler + count3Wheeler)
+                    count3Wheeler--;
+                else if (removedIndex < count2Wheeler + count3Wheeler + count4Wheeler)
+                    count4Wheeler--;
+
+
+                cout << "VEHICLE NUMBER " << vehicleNumber << " REMOVED SUCCESSFULLY." << endl;
+                cout << "TOTAL NUMBER OF VEHICLES = " << count2Wheeler + count3Wheeler + count4Wheeler << endl;
+                cout << "NUMBER OF FREE SLOTS = " << TOTAL_SLOTS - (count2Wheeler + count3Wheeler + count4Wheeler) << endl;
+            }
+            else
+            {
+                cout << "VEHICLE NUMBER " << vehicleNumber << " NOT FOUND." << endl;
+            }
+
+            cout << "---------------------------------------" << endl;
+        }
+
+        else if (ui == 6)
+
+        {
+            saveParkingDetailsToWord(vehicleNumbers, phoneNumbers, vehicleNames, slotNumbers);
+            break;
+        }
+        else
+        {
+
+            cout << "---------------------------------------" << endl;
+            cout << "INVALID INPUT.." << endl;
+            cout << "---------------------------------------" << endl;
+
+        }
+    }
+
+    return 0;
+}
+
